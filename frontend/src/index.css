@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
@@ -126,4 +127,15 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+}
+/* Custom styles for the decision tree visualization */
+.rd3t-link {
+  stroke: #cbd5e1; /* gray-300 */
+  stroke-width: 2px;
+  transition: stroke-width 0.3s, stroke 0.3s;
+}
+
+.rd3t-link.active-link {
+  stroke: #ef4444; /* red-500 */
+  stroke-width: 4px;
 }

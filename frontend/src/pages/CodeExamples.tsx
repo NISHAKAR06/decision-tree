@@ -1,8 +1,132 @@
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, Code, Play, Download, BookOpen } from "lucide-react";
+import { ArrowRight, ArrowLeft, Code } from "lucide-react";
 import { Link } from "react-router-dom";
+
+const id3FromScratchCode = `
+import pandas as pd
+import numpy as np
+from graphviz import Digraph
+
+# Dataset
+data = {
+    'Day': ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12', 'D13', 'D14'],
+    'Outlook': ['Sunny', 'Sunny', 'Overcast', 'Rain', 'Rain', 'Rain', 'Overcast', 'Sunny', 'Sunny', 'Rain', 'Sunny', 'Overcast', 'Overcast', 'Rain'],
+    'Temp': ['Hot', 'Hot', 'Hot', 'Mild', 'Cool', 'Cool', 'Cool', 'Mild', 'Cool', 'Mild', 'Mild', 'Mild', 'Hot', 'Mild'],
+    'Humidity': ['High', 'High', 'High', 'High', 'Normal', 'Normal', 'Normal', 'High', 'Normal', 'Normal', 'Normal', 'High', 'Normal', 'High'],
+    'Wind': ['Weak', 'Strong', 'Weak', 'Weak', 'Weak', 'Strong', 'Strong', 'Weak', 'Weak', 'Weak', 'Strong', 'Strong', 'Weak', 'Strong'],
+    'PlayTennis': ['No', 'No', 'Yes', 'Yes', 'Yes', 'No', 'Yes', 'No', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'No']
+}
+
+df = pd.DataFrame(data)
+
+# Entropy
+def entropy(y):
+    classes, counts = np.unique(y, return_counts=True)
+    prob = counts / counts.sum()
+    return -np.sum(prob * np.log2(prob))
+
+# Information Gain
+def info_gain(X_col, y):
+    values, counts = np.unique(X_col, return_counts=True)
+    weighted_entropy = 0
+    for v, c in zip(values, counts):
+        weighted_entropy += (c / len(y)) * entropy(y[X_col == v])
+    return entropy(y) - weighted_entropy
+
+# ID3 Algorithm
+def id3(X, y, features, graph, parent=None, edge_label=None, depth=0):
+    if len(np.unique(y)) == 1:
+        label = np.unique(y)[0]
+        node = f"Leaf_{depth}_{label}"
+        graph.node(node, label, shape='box', style='filled', fillcolor='lightblue')
+        if parent:
+            graph.edge(parent, node, label=edge_label)
+        return node
+
+    if len(features) == 0:
+        majority = y.value_counts().idxmax()
+        node = f"Leaf_{depth}_{majority}"
+        graph.node(node, majority, shape='box', style='filled', fillcolor='lightgreen')
+        if parent:
+            graph.edge(parent, node, label=edge_label)
+        return node
+
+    gains = [info_gain(X[f], y) for f in features]
+    best_feat = features[np.argmax(gains)]
+
+    node = f"Node_{depth}_{best_feat}"
+    graph.node(node, best_feat, shape='ellipse', style='filled', fillcolor='orange')
+    if parent:
+        graph.edge(parent, node, label=edge_label)
+
+    remaining_features = [f for f in features if f != best_feat]
+    for val in np.unique(X[best_feat]):
+        subset_X = X[X[best_feat] == val].drop(columns=[best_feat])
+        subset_y = y[X[best_feat] == val]
+        id3(subset_X, subset_y, remaining_features, graph, node, str(val), depth+1)
+
+    return node
+
+# Build & Visualize
+features = ['Outlook', 'Temp', 'Humidity', 'Wind']
+target = df['PlayTennis']
+
+dot = Digraph()
+id3(df[features], target, features, dot)
+
+dot.render("id3_tree", format='png', cleanup=False)
+dot.view("id3_tree")
+`;
+
+const id3SklearnCode = `
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.tree import plot_tree
+import matplotlib.pyplot as plt
+
+# Dataset
+data = {
+    'Day': ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12', 'D13', 'D14'],
+    'Outlook': ['Sunny', 'Sunny', 'Overcast', 'Rain', 'Rain', 'Rain', 'Overcast', 'Sunny', 'Sunny', 'Rain', 'Sunny', 'Overcast', 'Overcast', 'Rain'],
+    'Temp': ['Hot', 'Hot', 'Hot', 'Mild', 'Cool', 'Cool', 'Cool', 'Mild', 'Cool', 'Mild', 'Mild', 'Mild', 'Hot', 'Mild'],
+    'Humidity': ['High', 'High', 'High', 'High', 'Normal', 'Normal', 'Normal', 'High', 'Normal', 'Normal', 'Normal', 'High', 'Normal', 'High'],
+    'Wind': ['Weak', 'Strong', 'Weak', 'Weak', 'Weak', 'Strong', 'Strong', 'Weak', 'Weak', 'Weak', 'Strong', 'Strong', 'Weak', 'Strong'],
+    'PlayTennis': ['No', 'No', 'Yes', 'Yes', 'Yes', 'No', 'Yes', 'No', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'No']
+}
+df = pd.DataFrame(data)
+
+# Label Encoding
+le = LabelEncoder()
+for column in ['Outlook', 'Temp', 'Humidity', 'Wind', 'PlayTennis']:
+    df[column] = le.fit_transform(df[column])
+
+# Features and Target
+X = df[['Outlook', 'Temp', 'Humidity', 'Wind']]
+y = df['PlayTennis']
+
+# Train-Test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Decision Tree Classifier
+clf = DecisionTreeClassifier(criterion='entropy', max_depth=4, random_state=42)
+clf.fit(X_train, y_train)
+
+# Prediction and Accuracy
+y_pred = clf.predict(X_test)
+acc = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {acc:.2f}")
+
+# Plot the tree
+plt.figure(figsize=(12, 8))
+plot_tree(clf, feature_names=X.columns.tolist(), class_names=['No', 'Yes'], filled=True)
+plt.title("Decision Tree Classifier - Play Tennis (scikit-learn)")
+plt.show()
+`;
 
 const CodeExamples = () => {
   return (
@@ -14,214 +138,61 @@ const CodeExamples = () => {
           {/* Header */}
           <div className="text-center mb-12 animate-fade-in">
             <h1 className="text-4xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
-              Code Examples
+              ID3 Algorithm Code Examples
             </h1>
             <p className="text-xl text-muted-foreground">
-              Learn to implement decision trees with Python and scikit-learn
+              Learn to implement the ID3 decision tree from scratch and with scikit-learn.
             </p>
           </div>
 
           {/* Content */}
           <div className="space-y-8">
-            {/* Basic Implementation */}
+            {/* From Scratch Implementation */}
             <Card className="bg-gradient-card shadow-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Code className="h-6 w-6 text-primary" />
-                  Basic Decision Tree with scikit-learn
+                  ID3 Implementation from Scratch
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="mb-4">
-                  Let's start with the simplest way to create a decision tree using Python and scikit-learn:
+                  This example shows how to build the ID3 algorithm using Python with Pandas, NumPy, and Graphviz for visualization.
                 </p>
-                
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-                  <div className="space-y-1">
-                    <div><span className="text-green-400"># Import necessary libraries</span></div>
-                    <div><span className="text-blue-400">from</span> sklearn.tree <span className="text-blue-400">import</span> DecisionTreeClassifier</div>
-                    <div><span className="text-blue-400">from</span> sklearn.model_selection <span className="text-blue-400">import</span> train_test_split</div>
-                    <div><span className="text-blue-400">from</span> sklearn.metrics <span className="text-blue-400">import</span> accuracy_score</div>
-                    <div><span className="text-blue-400">import</span> pandas <span className="text-blue-400">as</span> pd</div>
-                    <div></div>
-                    <div><span className="text-green-400"># Load your data</span></div>
-                    <div>data = pd.read_csv(<span className="text-yellow-300">'your_dataset.csv'</span>)</div>
-                    <div>X = data.drop(<span className="text-yellow-300">'target_column'</span>, axis=<span className="text-purple-400">1</span>)  <span className="text-green-400"># Features</span></div>
-                    <div>y = data[<span className="text-yellow-300">'target_column'</span>]  <span className="text-green-400"># Target variable</span></div>
-                    <div></div>
-                    <div><span className="text-green-400"># Split the data</span></div>
-                    <div>X_train, X_test, y_train, y_test = train_test_split(</div>
-                    <div className="ml-4">X, y, test_size=<span className="text-purple-400">0.2</span>, random_state=<span className="text-purple-400">42</span></div>
-                    <div>)</div>
-                    <div></div>
-                    <div><span className="text-green-400"># Create and train the model</span></div>
-                    <div>model = DecisionTreeClassifier(random_state=<span className="text-purple-400">42</span>)</div>
-                    <div>model.fit(X_train, y_train)</div>
-                    <div></div>
-                    <div><span className="text-green-400"># Make predictions</span></div>
-                    <div>y_pred = model.predict(X_test)</div>
-                    <div>accuracy = accuracy_score(y_test, y_pred)</div>
-                    <div><span className="text-blue-400">print</span>(<span className="text-yellow-300">f'Accuracy: {'{accuracy:.2f}'}'</span>)</div>
-                  </div>
+                  <pre><code>{id3FromScratchCode}</code></pre>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Advanced Parameters */}
+            {/* Scikit-learn Implementation */}
             <Card className="bg-gradient-card shadow-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Play className="h-6 w-6 text-secondary" />
-                  Fine-tuning Parameters
+                  <Code className="h-6 w-6 text-secondary" />
+                  ID3 Implementation with Scikit-learn
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="mb-4">
-                  Control how your decision tree grows with these important parameters:
+                  This example demonstrates how to create the same ID3 decision tree using the popular scikit-learn library.
                 </p>
-                
-                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-4">
-                  <div className="space-y-1">
-                    <div><span className="text-green-400"># Advanced Decision Tree with parameters</span></div>
-                    <div>model = DecisionTreeClassifier(</div>
-                    <div className="ml-4">criterion=<span className="text-yellow-300">'gini'</span>,  <span className="text-green-400"># or 'entropy'</span></div>
-                    <div className="ml-4">max_depth=<span className="text-purple-400">5</span>,  <span className="text-green-400"># Limit tree depth</span></div>
-                    <div className="ml-4">min_samples_split=<span className="text-purple-400">20</span>,  <span className="text-green-400"># Min samples to split</span></div>
-                    <div className="ml-4">min_samples_leaf=<span className="text-purple-400">10</span>,  <span className="text-green-400"># Min samples in leaf</span></div>
-                    <div className="ml-4">max_features=<span className="text-yellow-300">'sqrt'</span>,  <span className="text-green-400"># Features to consider</span></div>
-                    <div className="ml-4">random_state=<span className="text-purple-400">42</span></div>
-                    <div>)</div>
-                  </div>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-4 text-sm">
-                  <div className="space-y-2">
-                    <div className="p-3 bg-primary-light rounded">
-                      <strong>criterion:</strong> 'gini' or 'entropy'<br />
-                      <span className="text-muted-foreground">How to measure split quality</span>
-                    </div>
-                    <div className="p-3 bg-secondary-light rounded">
-                      <strong>max_depth:</strong> None or integer<br />
-                      <span className="text-muted-foreground">Maximum tree depth</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="p-3 bg-accent-light rounded">
-                      <strong>min_samples_split:</strong> 2 or more<br />
-                      <span className="text-muted-foreground">Min samples to split a node</span>
-                    </div>
-                    <div className="p-3 bg-primary-light rounded">
-                      <strong>min_samples_leaf:</strong> 1 or more<br />
-                      <span className="text-muted-foreground">Min samples in leaf node</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Complete Example */}
-            <Card className="bg-gradient-card shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-6 w-6 text-accent" />
-                  Complete Example: Iris Classification
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-                  <div className="space-y-1">
-                    <div><span className="text-blue-400">from</span> sklearn.datasets <span className="text-blue-400">import</span> load_iris</div>
-                    <div><span className="text-blue-400">from</span> sklearn.tree <span className="text-blue-400">import</span> DecisionTreeClassifier, plot_tree</div>
-                    <div><span className="text-blue-400">from</span> sklearn.model_selection <span className="text-blue-400">import</span> train_test_split</div>
-                    <div><span className="text-blue-400">from</span> sklearn.metrics <span className="text-blue-400">import</span> classification_report</div>
-                    <div><span className="text-blue-400">import</span> matplotlib.pyplot <span className="text-blue-400">as</span> plt</div>
-                    <div></div>
-                    <div><span className="text-green-400"># Load the famous Iris dataset</span></div>
-                    <div>iris = load_iris()</div>
-                    <div>X, y = iris.data, iris.target</div>
-                    <div></div>
-                    <div><span className="text-green-400"># Split the data</span></div>
-                    <div>X_train, X_test, y_train, y_test = train_test_split(</div>
-                    <div className="ml-4">X, y, test_size=<span className="text-purple-400">0.3</span>, random_state=<span className="text-purple-400">42</span></div>
-                    <div>)</div>
-                    <div></div>
-                    <div><span className="text-green-400"># Create and train the model</span></div>
-                    <div>dt = DecisionTreeClassifier(</div>
-                    <div className="ml-4">criterion=<span className="text-yellow-300">'entropy'</span>,</div>
-                    <div className="ml-4">max_depth=<span className="text-purple-400">3</span>,</div>
-                    <div className="ml-4">random_state=<span className="text-purple-400">42</span></div>
-                    <div>)</div>
-                    <div>dt.fit(X_train, y_train)</div>
-                    <div></div>
-                    <div><span className="text-green-400"># Make predictions and evaluate</span></div>
-                    <div>y_pred = dt.predict(X_test)</div>
-                    <div><span className="text-blue-400">print</span>(classification_report(y_test, y_pred, 
-                                          target_names=iris.target_names))</div>
-                    <div></div>
-                    <div><span className="text-green-400"># Visualize the tree</span></div>
-                    <div>plt.figure(figsize=(<span className="text-purple-400">15</span>, <span className="text-purple-400">10</span>))</div>
-                    <div>plot_tree(dt, feature_names=iris.feature_names, </div>
-                    <div className="ml-8">class_names=iris.target_names, filled=<span className="text-blue-400">True</span>)</div>
-                    <div>plt.show()</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Feature Importance */}
-            <Card className="bg-gradient-card shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Download className="h-6 w-6 text-primary" />
-                  Understanding Feature Importance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">
-                  See which features are most important for your decision tree:
-                </p>
-                
-                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-                  <div className="space-y-1">
-                    <div><span className="text-green-400"># Get feature importance</span></div>
-                    <div>feature_importance = dt.feature_importances_</div>
-                    <div>feature_names = iris.feature_names</div>
-                    <div></div>
-                    <div><span className="text-green-400"># Create a DataFrame for better visualization</span></div>
-                    <div><span className="text-blue-400">import</span> pandas <span className="text-blue-400">as</span> pd</div>
-                    <div>importance_df = pd.DataFrame({'{'}</div>
-                    <div className="ml-4"><span className="text-yellow-300">'feature'</span>: feature_names,</div>
-                    <div className="ml-4"><span className="text-yellow-300">'importance'</span>: feature_importance</div>
-                    <div>{'}'})</div>
-                    <div></div>
-                    <div><span className="text-green-400"># Sort by importance</span></div>
-                    <div>importance_df = importance_df.sort_values(<span className="text-yellow-300">'importance'</span>, 
-                                                    ascending=<span className="text-blue-400">False</span>)</div>
-                    <div><span className="text-blue-400">print</span>(importance_df)</div>
-                    <div></div>
-                    <div><span className="text-green-400"># Plot feature importance</span></div>
-                    <div>plt.figure(figsize=(<span className="text-purple-400">10</span>, <span className="text-purple-400">6</span>))</div>
-                    <div>plt.bar(importance_df[<span className="text-yellow-300">'feature'</span>], importance_df[<span className="text-yellow-300">'importance'</span>])</div>
-                    <div>plt.title(<span className="text-yellow-300">'Feature Importance in Decision Tree'</span>)</div>
-                    <div>plt.xlabel(<span className="text-yellow-300">'Features'</span>)</div>
-                    <div>plt.ylabel(<span className="text-yellow-300">'Importance'</span>)</div>
-                    <div>plt.xticks(rotation=<span className="text-purple-400">45</span>)</div>
-                    <div>plt.show()</div>
-                  </div>
+                  <pre><code>{id3SklearnCode}</code></pre>
                 </div>
               </CardContent>
             </Card>
 
             {/* Navigation */}
-            <div className="flex justify-between items-center pt-8">
+            <div className="flex w-full flex-col items-center justify-center gap-4 pt-8 sm:flex-row sm:justify-between">
               <Link to="/how-it-works">
-                <Button variant="outline">
+                <Button variant="outline" size="sm">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Previous: How It Works
                 </Button>
               </Link>
               <Link to="/try-it-yourself">
-                <Button className="bg-gradient-primary">
+                <Button size="sm">
                   Next: Try It Yourself
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

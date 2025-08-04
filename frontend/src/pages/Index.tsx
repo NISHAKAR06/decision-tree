@@ -212,7 +212,7 @@ const Index = () => {
       <footer className="py-8 bg-card border-t">
         <div className="container mx-auto px-4 text-center">
           <p className="text-muted-foreground">
-            © 2024 Decision Tree Academy. Made with ❤️ for learning.
+            © 2025 Decision Tree Academy. Made with ❤️❤️ for learning.
           </p>
         </div>
       </footer>

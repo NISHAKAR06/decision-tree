@@ -114,15 +114,15 @@ const EntropyInformationGain = () => {
             </Card>
 
             {/* Navigation */}
-            <div className="flex justify-between items-center pt-8">
+            <div className="flex w-full flex-col items-center justify-center gap-4 pt-8 sm:flex-row sm:justify-between">
               <Link to="/what-is-decision-tree">
-                <Button variant="outline">
+                <Button variant="outline" size="sm">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Previous: What is a Decision Tree?
                 </Button>
               </Link>
               <Link to="/how-it-works">
-                <Button className="bg-gradient-primary">
+                <Button size="sm">
                   Next: How It Works
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

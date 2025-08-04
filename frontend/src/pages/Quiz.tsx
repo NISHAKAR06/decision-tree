@@ -22,7 +22,7 @@ const Quiz = () => {
         "The depth of the decision tree"
       ],
       correct: 1,
-      explanation: "Entropy measures the impurity or randomness in a dataset. Higher entropy means more mixed/chaotic data, while lower entropy means more organized data."
+      explanation: "Entropy quantifies the amount of disorder or impurity in a dataset.\n\nEntropy = 0 → All data belongs to one class (pure).\n\nEntropy is highest when classes are evenly mixed."
     },
     {
       id: 2,
@@ -34,7 +34,7 @@ const Quiz = () => {
         "Size-based splitting"
       ],
       correct: 2,
-      explanation: "Entropy-based splitting calculates information gain for each possible split and chooses the one that maximizes it, creating the purest possible subsets."
+      explanation: "Information gain measures the reduction in entropy after a split.\nEntropy-based splitting (like in ID3) chooses the attribute that gives the highest information gain, i.e., the greatest reduction in impurity."
     },
     {
       id: 3,
@@ -46,7 +46,7 @@ const Quiz = () => {
         "The node is deleted"
       ],
       correct: 0,
-      explanation: "When entropy = 0, all samples in the node belong to the same class (pure node). This is a perfect stopping condition, so a leaf node is created."
+      explanation: "When entropy is 0, it means all samples in the node are from the same class.\nTherefore, the algorithm stops splitting and converts this node into a leaf node that predicts that class."
     },
     {
       id: 4,
@@ -58,7 +58,7 @@ const Quiz = () => {
         "The time saved by using the algorithm"
       ],
       correct: 1,
-      explanation: "Information gain = Original entropy - Weighted average of split entropies. It measures how much 'cleaner' the data becomes after asking a question."
+      explanation: "Information Gain = Entropy(before split) – Weighted Entropy(after split).\nIt tells us how much uncertainty is reduced after making a decision (split)."
     },
     {
       id: 5,
@@ -70,7 +70,7 @@ const Quiz = () => {
         "random_state"
       ],
       correct: 2,
-      explanation: "The 'max_depth' parameter limits how deep the tree can grow, helping prevent overfitting by stopping the tree from becoming too complex."
+      explanation: "In scikit-learn’s DecisionTreeClassifier, the max_depth parameter limits how deep the tree can grow.\nThis helps control overfitting by restricting tree complexity."
     },
     {
       id: 6,
@@ -82,7 +82,55 @@ const Quiz = () => {
         "It's the most important feature"
       ],
       correct: 1,
-      explanation: "Weather typically has the highest information gain because it creates relatively pure subsets (e.g., 'Overcast' → always play, 'Sunny' → usually don't play)."
+      explanation: "In the classic “Play Tennis” dataset, 'Weather' usually results in pure subsets when split, especially 'Overcast', which always leads to 'Play'.\nHence, it provides the most information gain at the root."
+    },
+    {
+      id: 7,
+      question: "What type of features can the basic ID3 algorithm handle?",
+      options: [
+        "Categorical features only",
+        "Numerical features only",
+        "Both categorical and numerical features",
+        "Text and image features"
+      ],
+      correct: 0,
+      explanation: "The original ID3 algorithm cannot directly handle continuous (numerical) features.\nThey need to be converted into categories (discretized) before being used."
+    },
+    {
+      id: 8,
+      question: "What is a major disadvantage of the ID3 algorithm?",
+      options: [
+        "It is very slow to train",
+        "It is biased towards features with more values",
+        "It cannot handle more than 10 features",
+        "It only works for binary classification"
+      ],
+      correct: 1,
+      explanation: "ID3 favors attributes with many unique values (like ID numbers), because they seem to split the data well, even though it might be misleading.\nThis is called attribute-value bias."
+    },
+    {
+      id: 9,
+      question: "How does the ID3 algorithm handle missing values?",
+      options: [
+        "It automatically replaces them with the mean",
+        "It treats 'missing' as a separate category",
+        "The original algorithm does not have a standard method",
+        "It deletes the entire row of data"
+      ],
+      correct: 2,
+      explanation: "ID3 doesn’t define how to handle missing values.\nModern adaptations use strategies like imputation, probabilistic splits, or treating missing as a separate category, but these are not part of original ID3."
+    },
+    {
+      id: 10,
+      question: "Which of the following algorithms is a successor to ID3 that addresses some of its limitations?",
+      options: [
+        "K-Nearest Neighbors",
+        "Linear Regression",
+        "C4.5",
+        "Support Vector Machines"
+      ],
+      correct: 2,
+      explanation: "C4.5 was developed by Ross Quinlan to improve ID3.\nIt supports continuous attributes, handles missing values, and uses gain ratio instead of information gain to reduce bias toward multi-valued attributes."
     }
   ];
 
@@ -303,10 +351,11 @@ const Quiz = () => {
           </Card>
 
           {/* Navigation */}
-          <div className="flex justify-between items-center mt-8">
+          <div className="flex w-full flex-col items-center justify-center gap-4 pt-8 sm:flex-row sm:justify-between">
             <Button 
               onClick={handlePrevious}
               variant="outline"
+              size="sm"
               disabled={currentQuestion === 0}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -315,7 +364,7 @@ const Quiz = () => {
             
             <Button 
               onClick={handleNext}
-              className="bg-gradient-primary"
+              size="sm"
               disabled={!isAnswered}
             >
               {currentQuestion === questions.length - 1 ? "Finish Quiz" : "Next"}

@@ -219,15 +219,15 @@ const HowItWorks = () => {
             </Card>
 
             {/* Navigation */}
-            <div className="flex justify-between items-center pt-8">
+            <div className="flex w-full flex-col items-center justify-center gap-4 pt-8 sm:flex-row sm:justify-between">
               <Link to="/entropy-information-gain">
-                <Button variant="outline">
+                <Button variant="outline" size="sm">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Previous: Entropy & Information Gain
                 </Button>
               </Link>
               <Link to="/code-examples">
-                <Button className="bg-gradient-primary">
+                <Button size="sm">
                   Next: Code Examples
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

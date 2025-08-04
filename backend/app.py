@@ -101,7 +101,6 @@ def cart_regression(X, y, features, depth=0, max_depth=3):
     left_idx = (X[feat] == val)
     right_idx = (X[feat] != val)
     
-    # For regression, the split is binary, so we don't remove the feature
     node['subtrees']['yes'] = cart_regression(X[left_idx], y[left_idx], features, depth+1, max_depth)
     node['subtrees']['no']  = cart_regression(X[right_idx], y[right_idx], features, depth+1, max_depth)
 
@@ -114,24 +113,12 @@ def build_tree_endpoint():
     df = pd.DataFrame(data['dataset'])
     target_attribute = data['targetAttribute']
     attributes = data['attributes']
-    # mode = data['mode'] # No longer needed
-    # algorithm = data['algorithm'] # No longer needed
 
     X = df[attributes]
     y = df[target_attribute]
 
     # Only use ID3
     tree = id3(X, y, attributes)
-
-    # if mode == 'classification':
-    #     if algorithm == 'id3':
-    #         tree = id3(X, y, attributes)
-    #     else: # cart
-    #         tree = cart_classification(X, y, attributes)
-    # elif mode == 'regression':
-    #     # The provided regression script creates binary splits, which is different from the multi-way split of the classification scripts.
-    #     # We will use the CART regression logic.
-    #     tree = cart_regression(X, y, attributes)
 
     return jsonify(tree)
 

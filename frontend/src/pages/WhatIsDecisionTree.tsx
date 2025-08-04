@@ -106,12 +106,12 @@ const WhatIsDecisionTree = () => {
             </Card>
 
             {/* Navigation */}
-            <div className="flex justify-between items-center pt-8">
+            <div className="flex w-full flex-col items-center justify-center gap-4 pt-8 sm:flex-row sm:justify-between">
               <Link to="/">
-                <Button variant="outline">← Back to Home</Button>
+                <Button variant="outline" size="sm">← Back to Home</Button>
               </Link>
               <Link to="/entropy-information-gain">
-                <Button className="bg-gradient-primary">
+                <Button size="sm">
                   Next: Entropy & Information Gain
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
