@@ -63,6 +63,15 @@ decision-tree/
    ├─ package.json
    ├─ vite.config.ts
    └─ src/
+      ├── App.css
+            ├── App.tsx
+            ├── index.css
+            ├── main.tsx
+            ├── vite-env.d.ts
+            ├── components/
+            │   ├── Navbar.tsx
+            │   └── ui/
+
 ```
 
 ## Getting Started
