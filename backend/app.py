@@ -6,7 +6,7 @@ import numpy as np
 app = Flask(__name__)
 CORS(app) # Allow cross-origin requests
 
-# --- ID3 and CART Logic (consolidated from user's scripts) ---
+# --- ID3 Logic (consolidated from user's scripts) ---
 
 def entropy(y):
     classes, counts = np.unique(y, return_counts=True)
@@ -87,6 +87,8 @@ def best_split_regression(X, y, features):
             if score < best_score:
                 best_feature, best_value, best_score = feature, val, score
     return best_feature, best_value
+
+
 
 def cart_regression(X, y, features, depth=0, max_depth=3):
     if depth == max_depth or len(np.unique(y)) <= 1 or len(features) == 0:
