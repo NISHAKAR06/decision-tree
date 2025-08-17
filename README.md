@@ -189,6 +189,3 @@ Adapt to your implementation.
 
 Contributions are welcome! Please open an issue to discuss ideas, or submit a PR from a feature branch.
 
-## License
-
-Add a LICENSE file (e.g., MIT) if you plan to share or distribute this project.
